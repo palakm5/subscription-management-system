@@ -71,9 +71,10 @@ export const Products: React.FC = () => {
         page_size: '20',
         ...(search ? { q: search } : {}),
       });
-      const data = await apiRequest<{ items: Product[]; total: number }>(`/products?${query.toString()}`);
-      setProducts(data.items);
-      setTotal(data.total);
+      const data = await apiRequest<any>(`/products?${query.toString()}`);
+      const items = Array.isArray(data) ? data : (data?.items || []);
+      setProducts(items);
+      setTotal(Array.isArray(data) ? data.length : (data?.total || items.length));
     } catch (err: any) {
       addToast(err.message || 'Failed to load products', 'error');
     } finally {

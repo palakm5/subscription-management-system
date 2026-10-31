@@ -63,13 +63,13 @@ export const QuotationTemplates: React.FC = () => {
     try {
       setLoading(true);
       const [tmplRes, planRes, prodRes] = await Promise.all([
-        apiRequest<{ items: QuotationTemplate[]; total: number }>('/quotation-templates?page=1&page_size=50'),
-        apiRequest<{ items: Plan[]; total: number }>('/plans?page=1&page_size=50'),
-        apiRequest<{ items: Product[]; total: number }>('/products?page=1&page_size=100'),
+        apiRequest<any>('/quotation-templates?page=1&page_size=50'),
+        apiRequest<any>('/plans?page=1&page_size=50'),
+        apiRequest<any>('/products?page=1&page_size=100'),
       ]);
-      setTemplates(tmplRes.items);
-      setPlans(planRes.items);
-      setProducts(prodRes.items);
+      setTemplates(Array.isArray(tmplRes) ? tmplRes : (tmplRes?.items || []));
+      setPlans(Array.isArray(planRes) ? planRes : (planRes?.items || []));
+      setProducts(Array.isArray(prodRes) ? prodRes : (prodRes?.items || []));
     } catch (err: any) {
       addToast(err.message || 'Failed to load templates data', 'error');
     } finally {

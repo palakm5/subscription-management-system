@@ -40,8 +40,9 @@ export const Taxes: React.FC = () => {
   const loadTaxes = async () => {
     try {
       setLoading(true);
-      const data = await apiRequest<{ items: Tax[]; total: number }>('/taxes?page=1&page_size=50');
-      setTaxes(data.items);
+      const data = await apiRequest<any>('/taxes?page=1&page_size=50');
+      const items = Array.isArray(data) ? data : (data?.items || []);
+      setTaxes(items);
     } catch (err: any) {
       addToast(err.message || 'Failed to load taxes', 'error');
     } finally {

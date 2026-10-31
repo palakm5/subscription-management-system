@@ -57,8 +57,9 @@ export const Discounts: React.FC = () => {
   const loadDiscounts = async () => {
     try {
       setLoading(true);
-      const data = await apiRequest<{ items: Discount[]; total: number }>('/discounts?page=1&page_size=50');
-      setDiscounts(data.items);
+      const data = await apiRequest<any>('/discounts?page=1&page_size=50');
+      const items = Array.isArray(data) ? data : (data?.items || []);
+      setDiscounts(items);
     } catch (err: any) {
       addToast(err.message || 'Failed to load discounts', 'error');
     } finally {

@@ -127,9 +127,10 @@ export const Subscriptions: React.FC = () => {
         ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
         ...(search ? { q: search } : {}),
       });
-      const data = await apiRequest<{ items: Subscription[]; total: number }>(`/subscriptions?${params.toString()}`);
-      setSubscriptions(data.items);
-      setTotal(data.total);
+      const data = await apiRequest<any>(`/subscriptions?${params.toString()}`);
+      const items = Array.isArray(data) ? data : (data?.items || []);
+      setSubscriptions(items);
+      setTotal(Array.isArray(data) ? data.length : (data?.total || items.length));
     } catch (err: any) {
       addToast(err.message || 'Failed to load subscriptions', 'error');
     } finally {
@@ -140,22 +141,27 @@ export const Subscriptions: React.FC = () => {
   const loadAuxData = async () => {
     try {
       const [custRes, planRes, prodRes, tmplRes] = await Promise.all([
-        apiRequest<{ items: Customer[]; total: number }>('/customers?page=1&page_size=100'),
-        apiRequest<{ items: Plan[]; total: number }>('/plans?page=1&page_size=50'),
-        apiRequest<{ items: Product[]; total: number }>('/products?page=1&page_size=100'),
-        apiRequest<{ items: Template[]; total: number }>('/quotation-templates?page=1&page_size=50'),
+        apiRequest<any>('/customers?page=1&page_size=100'),
+        apiRequest<any>('/plans?page=1&page_size=50'),
+        apiRequest<any>('/products?page=1&page_size=100'),
+        apiRequest<any>('/quotation-templates?page=1&page_size=50'),
       ]);
-      setCustomers(custRes.items);
-      setPlans(planRes.items);
-      setProducts(prodRes.items);
-      setTemplates(tmplRes.items);
+      const custItems = Array.isArray(custRes) ? custRes : (custRes?.items || []);
+      const planItems = Array.isArray(planRes) ? planRes : (planRes?.items || []);
+      const prodItems = Array.isArray(prodRes) ? prodRes : (prodRes?.items || []);
+      const tmplItems = Array.isArray(tmplRes) ? tmplRes : (tmplRes?.items || []);
 
-      if (custRes.items.length > 0 && planRes.items.length > 0) {
+      setCustomers(custItems);
+      setPlans(planItems);
+      setProducts(prodItems);
+      setTemplates(tmplItems);
+
+      if (custItems.length > 0 && planItems.length > 0) {
         setCreateForm((prev) => ({
           ...prev,
-          customer_id: custRes.items[0].id,
-          plan_id: planRes.items[0].id,
-          lines: [{ product_id: prodRes.items[0]?.id || '', variant_id: '', quantity: 1, unit_price: '' }],
+          customer_id: custItems[0].id,
+          plan_id: planItems[0].id,
+          lines: [{ product_id: prodItems[0]?.id || '', variant_id: '', quantity: 1, unit_price: '' }],
         }));
       }
     } catch (err: any) {

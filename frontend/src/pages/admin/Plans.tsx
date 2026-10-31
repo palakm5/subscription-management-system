@@ -56,8 +56,9 @@ export const Plans: React.FC = () => {
   const loadPlans = async () => {
     try {
       setLoading(true);
-      const data = await apiRequest<{ items: Plan[]; total: number }>('/plans?page=1&page_size=50');
-      setPlans(data.items);
+      const data = await apiRequest<any>('/plans?page=1&page_size=50');
+      const items = Array.isArray(data) ? data : (data?.items || []);
+      setPlans(items);
     } catch (err: any) {
       addToast(err.message || 'Failed to load plans', 'error');
     } finally {
