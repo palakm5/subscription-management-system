@@ -1,0 +1,32 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment files
+.env
+!.env.example
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+.next/
+
+# Mongo RS local data
+.mongo_rs/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

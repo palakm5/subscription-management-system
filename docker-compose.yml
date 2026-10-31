@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: brightloop_mongo
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongosh --port 27017 --quiet) -eq 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: brightloop_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017/brightloop?replicaSet=rs0
+      - JWT_SECRET=brightloop-dev-secret-key-32-chars-minimum-1234
+      - FRONTEND_URL=http://localhost:5173
+      - ENVIRONMENT=production
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: brightloop_worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.worker.scheduler"]
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017/brightloop?replicaSet=rs0
+      - ENVIRONMENT=production
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: brightloop_web
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: brightloop_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  mongo_data:
